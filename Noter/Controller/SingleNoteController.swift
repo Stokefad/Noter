@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreData
+import Speech
 
 class SingleNoteController : UIViewController, SingleNoteProtocol {
     
@@ -24,6 +25,11 @@ class SingleNoteController : UIViewController, SingleNoteProtocol {
         set { cNote = newValue }
     }
     
+    let audioEngine = AVAudioEngine()
+    let speechRecognizer : SFSpeechRecognizer? = SFSpeechRecognizer()
+    let request = SFSpeechAudioBufferRecognitionRequest()
+    var recognitionTask = SFSpeechRecognitionTask()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -35,8 +41,45 @@ class SingleNoteController : UIViewController, SingleNoteProtocol {
     
     
     @IBAction func micButtonPressed(_ sender: UIButton) {
-        
+        recordAndRecognizeSpeech()
     }
+    
+    private func recordAndRecognizeSpeech() {
+        let node = audioEngine.inputNode
+        let recordingFormat = node.outputFormat(forBus: 0)
+        
+        node.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, audioTime) in
+            self.request.append(buffer)
+        }
+        
+        audioEngine.prepare()
+        do {
+            try audioEngine.start()
+        }
+        catch {
+            print("Problem with audio engine occured")
+        }
+        
+        // Checks that speech recognizer available
+        
+        guard let myRecognizer = SFSpeechRecognizer() else {
+            return
+        }
+        
+        if !myRecognizer.isAvailable {
+            return
+        }
+        
+        recognitionTask = (speechRecognizer?.recognitionTask(with: request, resultHandler: { (result, error) in
+            if result != nil {
+                self.noteText.text.append((result?.bestTranscription.formattedString)!)
+            }
+            else if error != nil {
+                print("Error with recognition happened")
+            }
+        }))!
+    }
+    
     
     @IBAction func saveButtonPressed(_ sender: UIButton) {
         updateNote()

@@ -17,11 +17,12 @@ class CollectionViewCell: UICollectionViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        
         // Initialization code
     }
     
     public func configure(with model: Note) {
-        noteText.text = "dsfdsfds"
-        dateLabel.text = "fdfsfdsfds"
+        noteText.text = model.text
+        dateLabel!.text = "The last update at \(String(describing: model.updateTime!))"
     }
 }

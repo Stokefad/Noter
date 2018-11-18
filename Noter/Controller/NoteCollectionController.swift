@@ -20,18 +20,20 @@ class NoteCollectionController : UICollectionViewController, UICollectionViewDel
     override func viewDidLoad() {
         super.viewDidLoad()
         
-
         noteArray = getNote()
         
         // Initizialize var for ids here
-        counter = noteArray[noteArray.count - 1].id + 1
+        if noteArray.count > 0 {
+            counter = noteArray[noteArray.count - 1].id + 1
+        }
         
         saveNote()
         
         collectionView.dataSource = self
         collectionView.delegate = self
-    
-        collectionView.register(UINib.init(nibName: "CollectionCell", bundle: nil), forCellWithReuseIdentifier: "noteItem")
+        
+        collectionView.register(UINib.init(nibName: "CollectionCell", bundle: nil), forCellWithReuseIdentifier: "CustomItem")
+        
     }
     
     
@@ -110,17 +112,15 @@ class NoteCollectionController : UICollectionViewController, UICollectionViewDel
         return UIScreen.main.bounds.height
     }
     
-    
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        collectionView.register(CollectionViewCell.self, forCellWithReuseIdentifier: "noteItem")
-        let item = collectionView.dequeueReusableCell(withReuseIdentifier: "noteItem", for: indexPath) as! CollectionViewCell
+        let item = collectionView.dequeueReusableCell(withReuseIdentifier: "CustomItem", for: indexPath) as! CollectionViewCell
         
         item.layer.cornerRadius = 10
         item.backgroundColor = colorArray[indexPath.row % 4]
         
-        saveNote()
+        item.configure(with: noteArray[indexPath.row])
         
- //       item.configure(with: noteArray[indexPath.row])
+        saveNote()
         
         return item
     }
@@ -128,7 +128,10 @@ class NoteCollectionController : UICollectionViewController, UICollectionViewDel
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return noteArray.count
     }
-    
+}
+
+extension NoteCollectionController {
+
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: screenWidth * 0.85, height: 80)
     }
@@ -163,4 +166,33 @@ class NoteCollectionController : UICollectionViewController, UICollectionViewDel
             print ("There was an error")
         }
     } */
+}
+
+
+extension String {
+    
+    var length: Int {
+        return count
+    }
+    
+    subscript (i: Int) -> String {
+        return self[i ..< i + 1]
+    }
+    
+    func substring(fromIndex: Int) -> String {
+        return self[min(fromIndex, length) ..< length]
+    }
+    
+    func substring(toIndex: Int) -> String {
+        return self[0 ..< max(0, toIndex)]
+    }
+    
+    subscript (r: Range<Int>) -> String {
+        let range = Range(uncheckedBounds: (lower: max(0, min(length, r.lowerBound)),
+                                            upper: min(length, max(0, r.upperBound))))
+        let start = index(startIndex, offsetBy: range.lowerBound)
+        let end = index(start, offsetBy: range.upperBound - range.lowerBound)
+        return String(self[start ..< end])
+    }
+    
 }
